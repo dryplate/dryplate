@@ -1,0 +1,21 @@
+{
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+	"name": "io.github.dryplate/dryplate",
+	"title": "Dryplate",
+	"description": "Local image tools: convert, resize, compress, crop, blur, watermark, strip metadata. Reads HEIC.",
+	"websiteUrl": "https://dryplate.dev",
+	"repository": {
+		"url": "https://github.com/dryplate/dryplate",
+		"source": "github",
+		"subfolder": "packages/mcp"
+	},
+	"version": "0.1.1",
+	"packages": [
+		{
+			"registryType": "npm",
+			"identifier": "@dryplate/mcp",
+			"version": "0.1.1",
+			"transport": { "type": "stdio" }
+		}
+	]
+}

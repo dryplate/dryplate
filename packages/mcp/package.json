@@ -1,6 +1,7 @@
 {
 	"name": "@dryplate/mcp",
-	"version": "0.1.0",
+	"mcpName": "io.github.dryplate/dryplate",
+	"version": "0.1.1",
 	"license": "MIT",
 	"homepage": "https://dryplate.dev",
 	"repository": {
