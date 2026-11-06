@@ -1,0 +1,6 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "types": ["node"], "resolveJsonModule": true },
+	"include": ["src", "../core/src/env.d.ts"],
+	"exclude": ["src/**/*.test.ts"]
+}

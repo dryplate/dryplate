@@ -1,0 +1,6 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"include": ["src"],
+	// ponytail: tests use node:fs; typing them needs @types/node (not added yet). Vitest still runs them.
+	"exclude": ["src/**/*.test.ts", "src/test-*.ts"]
+}

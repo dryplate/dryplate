@@ -1,0 +1,40 @@
+{
+	"name": "@dryplate/mcp",
+	"version": "0.1.0",
+	"license": "MIT",
+	"homepage": "https://dryplate.dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/dryplate/dryplate.git",
+		"directory": "packages/mcp"
+	},
+	"bugs": "https://github.com/dryplate/dryplate/issues",
+	"type": "module",
+	"bin": {
+		"dryplate-mcp": "./dist/main.js"
+	},
+	"files": [
+		"dist",
+		"AUTHORS"
+	],
+	"scripts": {
+		"build": "vite build",
+		"typecheck": "tsc -p .",
+		"smoke": "sh smoke/smoke.sh"
+	},
+	"dependencies": {
+		"libheif-js": "^1.23.5",
+		"sharp": "^0.35.5"
+	},
+	"devDependencies": {
+		"@dryplate/core": "workspace:*",
+		"@dryplate/sdk": "workspace:*",
+		"@modelcontextprotocol/sdk": "^1.32.2",
+		"@types/node": "^24.19.2",
+		"vite": "^8.3.5",
+		"zod": "^4.6.7"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

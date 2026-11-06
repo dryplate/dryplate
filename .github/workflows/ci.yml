@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: SDK tarball works in plain Node and headless Chrome
+        run: packages/sdk/smoke/smoke.sh
+      - name: MCP tarball serves all tools over stdio
+        run: packages/mcp/smoke/smoke.sh
