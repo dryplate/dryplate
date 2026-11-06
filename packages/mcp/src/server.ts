@@ -23,7 +23,15 @@ const common = {
 		.boolean()
 		.optional()
 		.describe("Replace an existing output file. Default false"),
-	quality: z.number().int().min(1).max(100).optional().describe("1–100"),
+	quality: z
+		.number()
+		.int()
+		.min(1)
+		.max(100)
+		.optional()
+		.describe(
+			"Quality for lossy output (JPEG, WebP, AVIF), 1–100. PNG ignores it",
+		),
 };
 type Common = {
 	path?: string;
@@ -108,7 +116,10 @@ function tool<S extends Shape>(
 	server.registerTool(
 		name,
 		// Typed as the common part only: the SDK's types cannot follow a generic shape.
-		{ description, inputSchema: { ...common, ...shape } as typeof common },
+		{
+			description: `${description} Writes a new file next to the input (name-${suffix}.ext) unless output is given, never replaces a file unless overwrite is true, and returns the path, format and size change.`,
+			inputSchema: { ...common, ...shape } as typeof common,
+		},
 		async (args) => {
 			try {
 				const a = args as Common;
@@ -137,10 +148,10 @@ export function createServer() {
 	tool(
 		server,
 		"convert_image",
-		"Convert an image to JPEG, PNG, WebP or AVIF, on this machine.",
+		"Convert an image to JPEG, PNG, WebP or AVIF, for example an iPhone HEIC photo to JPEG.",
 		{
 			path,
-			format: z.enum(["jpeg", "png", "webp", "avif"]),
+			format: z.enum(["jpeg", "png", "webp", "avif"]).describe("Output format"),
 		},
 		"converted",
 		(b, a) => image.convert(b, { format: a.format, quality: a.quality }),
@@ -149,12 +160,16 @@ export function createServer() {
 	tool(
 		server,
 		"resize_image",
-		"Resize an image, keeping its aspect ratio. Width and height together fit the image inside that box.",
+		"Resize an image, keeping its aspect ratio. Give width, height, both (the image fits inside that box) or percent.",
 		{
 			path,
-			width: px.optional(),
-			height: px.optional(),
-			percent: z.number().positive().optional(),
+			width: px.optional().describe("Target width in px"),
+			height: px.optional().describe("Target height in px"),
+			percent: z
+				.number()
+				.positive()
+				.optional()
+				.describe("Scale in percent, like 50 for half size"),
 		},
 		"resized",
 		(b, a) =>
@@ -172,7 +187,13 @@ export function createServer() {
 		"Make an image file smaller in its own format. Never returns a bigger file.",
 		{
 			path,
-			maxKb: z.number().positive().optional().describe("Target size in KB"),
+			maxKb: z
+				.number()
+				.positive()
+				.optional()
+				.describe(
+					"Target file size in KB. Without it, a sensible quality is used",
+				),
 		},
 		"compressed",
 		(b, a) => image.compress(b, { maxKb: a.maxKb, quality: a.quality }),
@@ -181,10 +202,10 @@ export function createServer() {
 	tool(
 		server,
 		"watermark_image",
-		"Draw a text watermark on an image.",
+		"Draw a text watermark on an image, in one corner or tiled across it.",
 		{
 			path,
-			text: z.string().min(1),
+			text: z.string().min(1).describe("Watermark text, like © 2026 Jane Doe"),
 			size: z
 				.number()
 				.positive()
@@ -230,7 +251,10 @@ export function createServer() {
 		{
 			path,
 			size: px.max(4096).optional().describe("Box edge in px. Default 256"),
-			format: z.enum(["jpeg", "png", "webp", "avif"]).optional(),
+			format: z
+				.enum(["jpeg", "png", "webp", "avif"])
+				.optional()
+				.describe("Output format. Default webp"),
 		},
 		"thumb",
 		async (b, a) => {
@@ -257,7 +281,7 @@ export function createServer() {
 	tool(
 		server,
 		"crop_image",
-		"Crop an image to a centred aspect ratio, or to a box.",
+		"Crop an image to a centred aspect ratio (ratio) or to a region (box). Give one of them.",
 		{
 			path,
 			ratio: z
@@ -265,7 +289,7 @@ export function createServer() {
 				.regex(/^\d+:\d+$/)
 				.optional()
 				.describe('Centred crop, like "1:1" or "16:9"'),
-			box: box.optional(),
+			box: box.optional().describe("Region to keep, as fractions of the image"),
 		},
 		"cropped",
 		(b, a) =>
@@ -279,7 +303,7 @@ export function createServer() {
 	tool(
 		server,
 		"rotate_image",
-		"Rotate an image clockwise, and or flip it.",
+		"Rotate an image clockwise by a quarter turn or more, and optionally mirror it.",
 		{
 			path,
 			degrees: z
@@ -302,8 +326,17 @@ export function createServer() {
 		"Blur a whole image, or only some areas of it (faces, plates, text).",
 		{
 			path,
-			strength: z.number().min(1).max(100).optional().describe("Default 20"),
-			areas: z.array(box).min(1).optional().describe("Blur only these boxes"),
+			strength: z
+				.number()
+				.min(1)
+				.max(100)
+				.optional()
+				.describe("Blur strength, 1–100. Default 20"),
+			areas: z
+				.array(box)
+				.min(1)
+				.optional()
+				.describe("Blur only these regions. Default: the whole image"),
 		},
 		"blurred",
 		(b, a) =>
@@ -328,7 +361,10 @@ export function createServer() {
 		"merge_images",
 		"Combine images side by side or stacked, scaled to the smallest shared edge.",
 		{
-			paths: z.array(z.string()).min(2).describe("Image files, in order"),
+			paths: z
+				.array(z.string())
+				.min(2)
+				.describe("Absolute paths (or ~/…) of the images, in order"),
 			direction: z
 				.enum(["horizontal", "vertical"])
 				.optional()
@@ -339,8 +375,11 @@ export function createServer() {
 				.min(0)
 				.max(500)
 				.optional()
-				.describe("Pixels between images"),
-			background: z.enum(["white", "black", "transparent"]).optional(),
+				.describe("Pixels between images. Default 0"),
+			background: z
+				.enum(["white", "black", "transparent"])
+				.optional()
+				.describe("Colour of the gap and any empty space. Default white"),
 		},
 		"merged",
 		(_, a, all) =>
