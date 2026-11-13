@@ -49,6 +49,6 @@
 	},
 	"devDependencies": {
 		"@dryplate/core": "workspace:*",
-		"vite": "^8.3.5"
+		"vite": "^8.3.7"
 	}
 }
